@@ -5412,6 +5412,18 @@ function getSaranLengkap(kata) {
         ' <span style="color:var(--text-3);font-size:11px">· ' + iss.count + '×</span> ' + badge +
         '</div>';
       var explanation = iss.message ? '<div class="spell-msg"><b>Koreksi EYD:</b> ' + esc(iss.message) + '</div>' : '';
+      var extraSaran = '';
+      if (typeof getSaranLengkap === 'function') {
+        var saran = getSaranLengkap(iss.word);
+        if (saran.sinonim && saran.sinonim.length) {
+          extraSaran += '<div class="spell-msg" style="margin-top:4px"><b>Sinonim:</b> ' +
+            saran.sinonim.map(function (s) { return esc(s); }).join(', ') + '</div>';
+        }
+        if (saran.antonim && saran.antonim.length) {
+          extraSaran += '<div class="spell-msg" style="margin-top:2px"><b>Antonim:</b> ' +
+            saran.antonim.map(function (s) { return esc(s); }).join(', ') + '</div>';
+        }
+      }
       var rule = '<div class="spell-rule">' + esc(eydRuleHint(level)) + (iss.categoryName ? ' · ' + esc(iss.categoryName) : '') + '</div>';
       var actions =
         '<div class="spell-fix">' +
@@ -5419,7 +5431,7 @@ function getSaranLengkap(kata) {
         (canApply ? '<button type="button" class="spell-apply" onclick="event.stopPropagation();applyEydCorrection(' + idx + ')">Terapkan koreksi</button>' : '') +
         '</div>';
       return '<div class="spell-item' + (iss.applied ? ' applied' : '') + '" data-eyd-level="' + level + '" data-idx="' + idx + '">' +
-        '<div style="min-width:0;flex:1">' + correctBlock + explanation + rule + actions + '</div></div>';
+  '<div style="min-width:0;flex:1">' + correctBlock + explanation + extraSaran + rule + actions + '</div></div>';
     }).join('');
   }
 
@@ -5832,6 +5844,20 @@ function getSaranLengkap(kata) {
       eydLevelLabel(level) + '</span>' +
       '</div>' +
       '<div class="et-msg"><b>Koreksi EYD:</b> ' + esc(iss.message || ('Gunakan bentuk «' + (iss.suggest || '') + '».')) + '</div>' +
+      (function () {
+        if (typeof getSaranLengkap !== 'function') return '';
+        var saran = getSaranLengkap(iss.word);
+        var html = '';
+        if (saran.sinonim && saran.sinonim.length) {
+          html += '<div class="et-msg" style="margin-top:4px"><b>Sinonim:</b> ' +
+            saran.sinonim.map(function (s) { return esc(s); }).join(', ') + '</div>';
+        }
+        if (saran.antonim && saran.antonim.length) {
+          html += '<div class="et-msg" style="margin-top:2px"><b>Antonim:</b> ' +
+            saran.antonim.map(function (s) { return esc(s); }).join(', ') + '</div>';
+        }
+        return html;
+      })() +
       '<div class="et-rule">' + esc(eydRuleHint(level)) + (iss.categoryName ? ' · ' + esc(iss.categoryName) : '') + '</div>' +
       '<div class="et-actions">' +
       (iss.suggest != null && iss.suggest !== '—' && !iss.applied ? '<button type="button" class="et-btn" id="etApplyBtn">Terapkan koreksi</button>' : '') +
