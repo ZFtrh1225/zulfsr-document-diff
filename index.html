@@ -4781,100 +4781,7 @@ window.KBBI = {
         });
       }
     }
-    /**
- * Memuat data KBBI (baku-nonbaku, sinonim, antonim) dari GitHub via jsDelivr
- * lalu menggabungkannya ke EYD_BAKU_MAP
- */
-async function loadKbbiData() {
-  if (window.KBBI.loaded) return true;
-
-  try {
-    toast('Memuat data KBBI (baku, sinonim, antonim)...');
-
-    const [resBaku, resSinonim, resAntonim] = await Promise.all([
-      fetch(KBBI_URLS.baku),
-      fetch(KBBI_URLS.sinonim),
-      fetch(KBBI_URLS.antonim)
-    ]);
-
-    if (!resBaku.ok || !resSinonim.ok || !resAntonim.ok) {
-      throw new Error('Gagal mengambil salah satu file KBBI');
-    }
-
-    const dataBaku = await resBaku.json();
-    const dataSinonim = await resSinonim.json();
-    const dataAntonim = await resAntonim.json();
-
-    // --- 1. Proses Baku-Nonbaku ---
-    const bakuList = dataBaku.quiz_baku || dataBaku || [];
-    bakuList.forEach(function (item) {
-      if (item.wrong && item.word) {
-        var wrong = String(item.wrong).toLowerCase().trim();
-        var correct = String(item.word).trim();
-        if (wrong && correct) {
-          window.KBBI.bakuMap[wrong] = correct;
-        }
-      }
-    });
-
-    // --- 2. Proses Sinonim ---
-    const sinonimList = dataSinonim.dictionary_sinonim || dataSinonim || [];
-    sinonimList.forEach(function (item) {
-      if (item.kata_a && item.kata_b) {
-        var a = item.kata_a.toLowerCase();
-        var b = item.kata_b.toLowerCase();
-        if (!window.KBBI.sinonim[a]) window.KBBI.sinonim[a] = [];
-        if (!window.KBBI.sinonim[b]) window.KBBI.sinonim[b] = [];
-        if (window.KBBI.sinonim[a].indexOf(b) === -1) window.KBBI.sinonim[a].push(b);
-        if (window.KBBI.sinonim[b].indexOf(a) === -1) window.KBBI.sinonim[b].push(a);
-      }
-    });
-
-    // --- 3. Proses Antonim ---
-    const antonimList = dataAntonim.dictionary_antonim || dataAntonim || [];
-    antonimList.forEach(function (item) {
-      if (item.kata_a && item.kata_b) {
-        var a = item.kata_a.toLowerCase();
-        var b = item.kata_b.toLowerCase();
-        if (!window.KBBI.antonim[a]) window.KBBI.antonim[a] = [];
-        if (!window.KBBI.antonim[b]) window.KBBI.antonim[b] = [];
-        if (window.KBBI.antonim[a].indexOf(b) === -1) window.KBBI.antonim[a].push(b);
-        if (window.KBBI.antonim[b].indexOf(a) === -1) window.KBBI.antonim[b].push(a);
-      }
-    });
-
-    // Gabungkan ke EYD_BAKU_MAP yang sudah ada
-    Object.assign(EYD_BAKU_MAP, window.KBBI.bakuMap);
-
-    window.KBBI.loaded = true;
-
-    var totalBaku = Object.keys(window.KBBI.bakuMap).length;
-    var totalSinonim = Object.keys(window.KBBI.sinonim).length;
-    var totalAntonim = Object.keys(window.KBBI.antonim).length;
-
-    toast('KBBI dimuat: ' + totalBaku + ' baku-nonbaku · ' + totalSinonim + ' sinonim · ' + totalAntonim + ' antonim');
-    console.log('KBBI loaded:', { totalBaku: totalBaku, totalSinonim: totalSinonim, totalAntonim: totalAntonim });
-
-    return true;
-  } catch (err) {
-    console.error('Gagal memuat KBBI:', err);
-    toast('Gagal memuat data KBBI. Menggunakan kamus lokal saja.');
-    return false;
-  }
-}
-
-/**
- * Helper: ambil saran lengkap untuk sebuah kata
- */
-function getSaranLengkap(kata) {
-  var lower = String(kata || '').toLowerCase();
-  return {
-    baku: EYD_BAKU_MAP[lower] || null,
-    sinonim: (window.KBBI.sinonim[lower] || []).slice(0, 5),
-    antonim: (window.KBBI.antonim[lower] || []).slice(0, 5)
-  };
-}
-
+  
     // --- 1b. Frasa multi-kata tidak baku ---
     var phrases = [
       ['terima kasih', /terimakasih|trima\s*kasih|terimakasi/gi],
@@ -5245,6 +5152,99 @@ function getSaranLengkap(kata) {
 
     return matches;
   }
+  /**
+ * Memuat data KBBI (baku-nonbaku, sinonim, antonim) dari GitHub via jsDelivr
+ * lalu menggabungkannya ke EYD_BAKU_MAP
+ */
+async function loadKbbiData() {
+  if (window.KBBI.loaded) return true;
+
+  try {
+    toast('Memuat data KBBI (baku, sinonim, antonim)...');
+
+    const [resBaku, resSinonim, resAntonim] = await Promise.all([
+      fetch(KBBI_URLS.baku),
+      fetch(KBBI_URLS.sinonim),
+      fetch(KBBI_URLS.antonim)
+    ]);
+
+    if (!resBaku.ok || !resSinonim.ok || !resAntonim.ok) {
+      throw new Error('Gagal mengambil salah satu file KBBI');
+    }
+
+    const dataBaku = await resBaku.json();
+    const dataSinonim = await resSinonim.json();
+    const dataAntonim = await resAntonim.json();
+
+    // --- 1. Proses Baku-Nonbaku ---
+    const bakuList = dataBaku.quiz_baku || dataBaku || [];
+    bakuList.forEach(function (item) {
+      if (item.wrong && item.word) {
+        var wrong = String(item.wrong).toLowerCase().trim();
+        var correct = String(item.word).trim();
+        if (wrong && correct) {
+          window.KBBI.bakuMap[wrong] = correct;
+        }
+      }
+    });
+
+    // --- 2. Proses Sinonim ---
+    const sinonimList = dataSinonim.dictionary_sinonim || dataSinonim || [];
+    sinonimList.forEach(function (item) {
+      if (item.kata_a && item.kata_b) {
+        var a = item.kata_a.toLowerCase();
+        var b = item.kata_b.toLowerCase();
+        if (!window.KBBI.sinonim[a]) window.KBBI.sinonim[a] = [];
+        if (!window.KBBI.sinonim[b]) window.KBBI.sinonim[b] = [];
+        if (window.KBBI.sinonim[a].indexOf(b) === -1) window.KBBI.sinonim[a].push(b);
+        if (window.KBBI.sinonim[b].indexOf(a) === -1) window.KBBI.sinonim[b].push(a);
+      }
+    });
+
+    // --- 3. Proses Antonim ---
+    const antonimList = dataAntonim.dictionary_antonim || dataAntonim || [];
+    antonimList.forEach(function (item) {
+      if (item.kata_a && item.kata_b) {
+        var a = item.kata_a.toLowerCase();
+        var b = item.kata_b.toLowerCase();
+        if (!window.KBBI.antonim[a]) window.KBBI.antonim[a] = [];
+        if (!window.KBBI.antonim[b]) window.KBBI.antonim[b] = [];
+        if (window.KBBI.antonim[a].indexOf(b) === -1) window.KBBI.antonim[a].push(b);
+        if (window.KBBI.antonim[b].indexOf(a) === -1) window.KBBI.antonim[b].push(a);
+      }
+    });
+
+    // Gabungkan ke EYD_BAKU_MAP yang sudah ada
+    Object.assign(EYD_BAKU_MAP, window.KBBI.bakuMap);
+
+    window.KBBI.loaded = true;
+
+    var totalBaku = Object.keys(window.KBBI.bakuMap).length;
+    var totalSinonim = Object.keys(window.KBBI.sinonim).length;
+    var totalAntonim = Object.keys(window.KBBI.antonim).length;
+
+    toast('KBBI dimuat: ' + totalBaku + ' baku-nonbaku · ' + totalSinonim + ' sinonim · ' + totalAntonim + ' antonim');
+    console.log('KBBI loaded:', { totalBaku: totalBaku, totalSinonim: totalSinonim, totalAntonim: totalAntonim });
+
+    return true;
+  } catch (err) {
+    console.error('Gagal memuat KBBI:', err);
+    toast('Gagal memuat data KBBI. Menggunakan kamus lokal saja.');
+    return false;
+  }
+}
+
+/**
+ * Helper: ambil saran lengkap untuk sebuah kata
+ */
+function getSaranLengkap(kata) {
+  var lower = String(kata || '').toLowerCase();
+  return {
+    baku: EYD_BAKU_MAP[lower] || null,
+    sinonim: (window.KBBI.sinonim[lower] || []).slice(0, 5),
+    antonim: (window.KBBI.antonim[lower] || []).slice(0, 5)
+  };
+}
 
   function normalizeLocalMatches(list) {
     return (list || []).map(function (m) {
